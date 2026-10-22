@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>Match Arena</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+<strong data-i18n="appName">Match Arena</strong>
+<nav>
+<button data-nav="home" data-i18n="navHome">Home</button>
+<button data-nav="challenges" data-i18n="navChallenges">Challenges</button>
+<button data-nav="room" data-i18n="navRoom">Match room</button>
+<button data-nav="wallet" data-i18n="navWallet">Wallet</button>
+<button data-nav="leaderboard" data-i18n="navLeaderboard">Leaderboard</button>
+<button data-nav="tournaments" data-i18n="navTournaments">Tournaments</button>
+<button data-nav="profile" data-i18n="navProfile">Profile</button>
+<button data-nav="admin" data-i18n="navAdmin">Admin</button>
+<button data-nav="notifications" data-i18n="navNotifications">Notifications</button>
+</nav>
+<div><button id="langBtn" class="secondary">Myanmar</button><button id="logoutBtn" class="secondary" data-i18n="logout">Log out</button></div>
+</header>
+<main>
+<div id="globalError"></div>
+<section id="sec-home" class="page">
+<div class="hero"><h1 data-i18n="homeTitle">Match Arena</h1><p data-i18n="tagline">A standalone match-challenge platform.</p>
+<form class="inline" onsubmit="return doSearch(event)"><div><label data-i18n="searchPlaceholder">Search players, challenges, tournaments</label><input id="searchQ"></div><button data-i18n="searchBtn">Search</button></form>
+<div id="searchResults"></div></div>
+<div id="homeStats" class="grid"></div>
+<div id="homeBanners"></div><div id="homeAnnouncements"></div><div id="homeTop"></div>
+<div class="card"><h2 data-i18n="login">Log in</h2><p class="muted" data-i18n="notLoggedIn">You are not logged in. Log in to use challenges, wallet and match rooms.</p>
+<form class="inline" onsubmit="return doDemoLogin(event)"><div><label data-i18n="email">Email</label><input id="loginEmail" type="email" required></div><div><label data-i18n="role">Role</label><select id="loginRole"><option value="player">player</option><option value="owner">owner</option><option value="admin">admin</option><option value="moderator">moderator</option><option value="support">support</option></select></div><button data-i18n="loginBtn">Demo log in</button></form>
+<p><a class="btn" href="/auth/google" data-i18n="googleLogin">Google log in</a></p><p class="muted" id="meLine"></p></div>
+</section>
+
+<section id="sec-challenges" class="page" hidden>
+<div class="card"><h2 data-i18n="challengesTitle">Challenge board</h2>
+<form class="inline" onsubmit="return loadChallenges(event)"><div><label data-i18n="arena">Arena</label><select id="fArena"><option value="">All</option><option>1v1</option><option>Classic</option><option>Brawl</option></select></div><div><label data-i18n="teamSize">Team size</label><select id="fTeam"><option value="">All</option><option>1v1</option><option>2v2</option><option>3v3</option><option>4v4</option><option>5v5</option></select></div><div><label data-i18n="heroRule">Hero rule</label><input id="fHero"></div><div><label>Coin min</label><input id="fMin" type="number"></div><div><label>Coin max</label><input id="fMax" type="number"></div><button data-i18n="searchBtn">Search</button></form>
+<div id="challengeList" class="list"></div></div>
+<div class="card"><h2 data-i18n="createChallenge">Create challenge</h2>
+<form onsubmit="return createChallenge(event)"><label data-i18n="arena">Arena</label><select id="cArena"><option>1v1</option><option>Classic</option><option>Brawl</option></select><label data-i18n="teamSize">Team size</label><select id="cTeam"><option>1v1</option><option>2v2</option><option>3v3</option><option>4v4</option><option>5v5</option></select><label data-i18n="stake">Stake</label><input id="cStake" type="number" required><label data-i18n="heroRule">Hero rule</label><select id="cHero"><option value="any">any</option><option>fighter_only</option><option>mage_only</option><option>assassin_only</option><option>marksman_only</option><option>tank_only</option><option>support_only</option><option>same_hero_only</option><option>random_hero_only</option><option>no_duplicate_hero</option></select><label data-i18n="heroBans">Hero bans (comma separated)</label><input id="cBans"><label data-i18n="customRules">Custom rules</label><textarea id="cRules"></textarea><button data-i18n="createChallenge">Create challenge</button></form>
+<div id="challengeDetail"></div></div>
+<div class="card"><h2 data-i18n="favorites">Favorites</h2><div id="favList" class="list"></div><button onclick="loadFavorites()" data-i18n="searchBtn">Search</button></div>
+</section>
+
+<section id="sec-room" class="page" hidden>
+<div class="card"><h2 data-i18n="roomTitle">Match room</h2>
+<form class="inline" onsubmit="return loadRoom(event)"><div><label>Room id</label><input id="roomId" type="number" required></div><button data-i18n="openRoom">Open room</button></form>
+<div id="roomDetail"></div><div id="roomChat" class="list"></div>
+<form class="inline" onsubmit="return sendChat(event)"><div><label data-i18n="chat">Chat</label><input id="chatText" maxlength="1000"></div><button data-i18n="send">Send</button></form>
+<div class="card"><h3 data-i18n="voiceJoin">Voice chat</h3><p class="muted" data-i18n="voiceNote">Voice needs microphone permission and works peer-to-peer. Text chat keeps working if voice is unavailable.</p><button onclick="joinVoice()" data-i18n="voiceJoin">Join voice</button><button onclick="toggleMute()" class="secondary" data-i18n="mute">Mute</button><button onclick="leaveVoice()" class="secondary" data-i18n="voiceLeave">Leave voice</button><p id="voiceStatus" class="muted"></p></div>
+<div class="card"><h3 data-i18n="resultTitle">Result</h3><form onsubmit="return submitResult(event)"><label data-i18n="outcome">Outcome</label><select id="resultOutcome"><option value="win">win</option><option value="lose">lose</option></select><label>Reason</label><input id="resultReason"><label data-i18n="evidence">Evidence image</label><input id="resultEvidence" type="file" accept="image/png,image/jpeg,image/webp"><button data-i18n="submit">Submit</button></form><div id="disputeView"></div></div>
+</div>
+</section>
+
+<section id="sec-wallet" class="page" hidden>
+<div class="card"><h2 data-i18n="walletTitle">Wallet</h2><div id="walletBalance"></div><div id="walletHistory" class="list"></div><div id="walletPurchases" class="list"></div></div>
+<div class="card"><h2 data-i18n="packages">Packages</h2><div id="packageList" class="list"></div>
+<form onsubmit="return buyCoins(event)"><label>Package id (or leave blank for custom)</label><input id="buyPackage" type="number"><label>Custom coins</label><input id="buyCustom" type="number"><button data-i18n="buy">Request purchase</button></form>
+<form onsubmit="return attachReferral(event)"><label>Referral code</label><input id="refCode"><button data-i18n="save">Save</button></form></div>
+<div class="card"><h2 data-i18n="referralTitle">Referral</h2><div id="referralDash"></div><div id="referralInvitees" class="list"></div></div>
+</section>
+
+<section id="sec-leaderboard" class="page" hidden>
+<div class="card"><h2 data-i18n="leaderboardTitle">Leaderboard</h2>
+<form class="inline" onsubmit="return loadLeaderboard(event)"><div><label data-i18n="category">Category</label><select id="lbCat"><option value="top_player">top_player</option><option value="most_wins">most_wins</option><option value="highest_win_streak">highest_win_streak</option><option value="top_team">top_team</option><option value="tournament_champion">tournament_champion</option></select></div><div><label data-i18n="period">Period</label><select id="lbPeriod"><option value="all_time">all_time</option><option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option></select></div><button data-i18n="searchBtn">Search</button></form>
+<div id="lbList" class="list"></div></div>
+</section>
+
+<section id="sec-tournaments" class="page" hidden>
+<div class="card"><h2 data-i18n="tournamentsTitle">Tournaments</h2><div id="tournList" class="list"></div>
+<form onsubmit="return loadTournament(event)"><label>Tournament id</label><input id="tournId" type="number" required><button data-i18n="openRoom">Open room</button></form><div id="tournDetail"></div><div id="tournBracket"></div></div>
+</section>
+
+<section id="sec-profile" class="page" hidden>
+<div class="card"><h2 data-i18n="profileTitle">Profile</h2><div id="profileView"></div>
+<form onsubmit="return saveProfile(event)"><label data-i18n="displayName">Display name</label><input id="profName"><label>Rank</label><select id="profRank"><option value="">Unset</option><option>Warrior</option><option>Elite</option><option>Master</option><option>Grandmaster</option><option>Epic</option><option>Legend</option><option>Mythic</option><option>Mythical Glory</option></select><label>MLBB ID</label><input id="profMlbb"><label>Server ID</label><input id="profServer"><button data-i18n="save">Save</button></form>
+<form onsubmit="return uploadAvatar(event)"><label>Avatar image</label><input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp"><button data-i18n="save">Save</button></form></div>
+<div class="card"><h2 data-i18n="friends">Friends</h2><form class="inline" onsubmit="return addFriend(event)"><div><label>User id</label><input id="friendId" type="number" required></div><button data-i18n="save">Save</button></form><div id="friendList" class="list"></div></div>
+<div class="card"><h2 data-i18n="teams">Teams</h2><form class="inline" onsubmit="return createTeam(event)"><div><label>Team name</label><input id="teamName" required></div><button data-i18n="save">Save</button></form><div id="teamList" class="list"></div></div>
+</section>
+
+<section id="sec-admin" class="page" hidden>
+<div class="card"><h2 data-i18n="adminTitle">Admin</h2><p class="muted" data-i18n="notAuthorized">You are not authorized to view this section.</p><div id="adminBody"></div></div>
+</section>
+
+<section id="sec-notifications" class="page" hidden>
+<div class="card"><h2 data-i18n="notificationsTitle">Notifications</h2>
+<form class="inline" onsubmit="return loadNotifications(event)"><div><label data-i18n="category">Category</label><select id="notCat"><option value="">All</option><option value="match">match</option><option value="dispute">dispute</option><option value="tournament">tournament</option><option value="referral">referral</option><option value="announcement">announcement</option></select></div><button data-i18n="searchBtn">Search</button><button type="button" onclick="markAllRead()" data-i18n="markAllRead">Mark all read</button></form>
+<div id="notList" class="list"></div></div>
+</section>
+</main>
+<footer><small>Neutral, standalone branding. No official game logos, art or wording are used. Push notifications are not enabled: in-app notifications are fetched from the notification centre on return.</small></footer>
+<script>
+const DICT = {
+en: {appName: 'Match Arena', tagline: 'A standalone match-challenge platform.', navHome: 'Home', navChallenges: 'Challenges', navRoom: 'Match room', navWallet: 'Wallet', navLeaderboard: 'Leaderboard', navTournaments: 'Tournaments', navProfile: 'Profile', navAdmin: 'Admin', navNotifications: 'Notifications', login: 'Log in', logout: 'Log out', demoLogin: 'Demo log in', googleLogin: 'Google log in', email: 'Email', role: 'Role', loginBtn: 'Demo log in', searchPlaceholder: 'Search players, challenges, tournaments', searchBtn: 'Search', homeTitle: 'Match Arena', statsOpen: 'Open challenges', statsActive: 'Active match rooms', statsCompleted: 'Completed matches', nextTournament: 'Next tournament', topPlayers: 'Top players', banners: 'Banners', announcements: 'Announcements', challengesTitle: 'Challenge board', createChallenge: 'Create challenge', arena: 'Arena', teamSize: 'Team size', stake: 'Stake', heroRule: 'Hero rule', heroBans: 'Hero bans (comma separated)', customRules: 'Custom rules', rankRestriction: 'Rank restriction', accept: 'Accept', cancel: 'Cancel', favorites: 'Favorites', detail: 'Detail', roomTitle: 'Match room', participants: 'Participants', copyId: 'Copy ID', roster: 'Roster', chat: 'Chat', send: 'Send', ready: 'Ready', unready: 'Un-ready', voiceJoin: 'Join voice', voiceLeave: 'Leave voice', mute: 'Mute', unmute: 'Unmute', voiceNote: 'Voice needs microphone permission and works peer-to-peer. Text chat keeps working if voice is unavailable.', resultTitle: 'Result', outcome: 'Outcome', evidence: 'Evidence image', submit: 'Submit', dispute: 'Dispute', walletTitle: 'Wallet', balanceAvailable: 'Available', balanceLocked: 'Locked', history: 'History', purchases: 'Purchases', packages: 'Packages', buy: 'Request purchase', referralTitle: 'Referral', leaderboardTitle: 'Leaderboard', category: 'Category', period: 'Period', tournamentsTitle: 'Tournaments', register: 'Register', bracket: 'Bracket', profileTitle: 'Profile', displayName: 'Display name', friends: 'Friends', teams: 'Teams', adminTitle: 'Admin', siteConfig: 'Site config', bannersAdmin: 'Banners', announcementsAdmin: 'Announcements', stats: 'Statistics', health: 'Health', suspicious: 'Suspicious', maintenance: 'Maintenance', emergency: 'Emergency', backups: 'Backups', help: 'Help', tickets: 'Tickets', notificationsTitle: 'Notifications', markRead: 'Mark read', markAllRead: 'Mark all read', loading: 'Loading', error: 'Error', notLoggedIn: 'You are not logged in. Log in to use challenges, wallet and match rooms.', notAuthorized: 'You are not authorized to view this section.', save: 'Save', close: 'Close', openRoom: 'Open room'},
+mm: {appName: 'Match Arena', tagline: 'သီးသန့် match-challenge ပလက်ဖောင်း။', navHome: 'ပင်မ', navChallenges: 'Challenge များ', navRoom: 'Match room', navWallet: 'Wallet', navLeaderboard: 'Leaderboard', navTournaments: 'Tournament များ', navProfile: 'Profile', navAdmin: 'Admin', navNotifications: 'Notification များ', login: 'ဝင်ရန်', logout: 'ထွက်ရန်', demoLogin: 'Demo ဖြင့် ဝင်ရန်', googleLogin: 'Google ဖြင့် ဝင်ရန်', email: 'အီးမေးလ်', role: 'Role', loginBtn: 'Demo ဖြင့် ဝင်ရန်', searchPlaceholder: 'Player၊ challenge၊ tournament ရှာရန်', searchBtn: 'ရှာရန်', homeTitle: 'Match Arena', statsOpen: 'ဖွင့်ထားသော challenge များ', statsActive: 'လက်ရှိ match room များ', statsCompleted: 'ပြီးသွားသော ပွဲများ', nextTournament: 'နောက်လာမည့် tournament', topPlayers: 'အကောင်းဆုံး player များ', banners: 'Banner များ', announcements: 'ကြေညာချက်များ', challengesTitle: 'Challenge board', createChallenge: 'Challenge ထောင်ရန်', arena: 'ကွင်း', teamSize: 'Team size', stake: 'Stake', heroRule: 'Hero rule', heroBans: 'Hero ban များ', customRules: 'Custom စည်းကမ်း', rankRestriction: 'Rank ကန့်သတ်ချက်', accept: 'လက်ခံရန်', cancel: 'ပယ်ဖျက်ရန်', favorites: 'Favorite များ', detail: 'အသေးစိတ်', roomTitle: 'Match room', participants: 'ပါဝင်သူများ', copyId: 'ID ကူးရန်', roster: 'Roster', chat: 'Chat', send: 'ပို့ရန်', ready: 'Ready', unready: 'Ready ပြန်ဖြုတ်ရန်', voiceJoin: 'Voice ဝင်ရန်', voiceLeave: 'Voice ထွက်ရန်', mute: 'အသံပိတ်ရန်', unmute: 'အသံဖွင့်ရန်', voiceNote: 'Voice အတွက် microphone ခွင့်ပြုချက် လိုအပ်ပြီး peer-to-peer ဖြစ်သည်။ Voice မရလည်း text chat သုံးလို့ရသည်။', resultTitle: 'ရလဒ်', outcome: 'ရလဒ်', evidence: 'သက်သေပုံ', submit: 'တင်ရန်', dispute: 'Dispute', walletTitle: 'Wallet', balanceAvailable: 'သုံးနိုင်သော', balanceLocked: 'Lock လုပ်ထားသော', history: 'မှတ်တမ်း', purchases: 'ဝယ်ယူမှုများ', packages: 'Package များ', buy: 'ဝယ်ရန် တောင်းဆိုရန်', referralTitle: 'Referral', leaderboardTitle: 'Leaderboard', category: 'အမျိုးအစား', period: 'ကာလ', tournamentsTitle: 'Tournament များ', register: 'စာရင်းသွင်းရန်', bracket: 'Bracket', profileTitle: 'Profile', displayName: 'Display name', friends: 'Friend များ', teams: 'Team များ', adminTitle: 'Admin', siteConfig: 'Site config', bannersAdmin: 'Banner များ', announcementsAdmin: 'ကြေညာချက်များ', stats: 'စာရင်းအင်း', health: 'Health', suspicious: 'သံသယရှိသော', maintenance: 'Maintenance', emergency: 'Emergency', backups: 'Backup များ', help: 'အကူအညီ', tickets: 'Ticket များ', notificationsTitle: 'Notification များ', markRead: 'ဖတ်ပြီးဟု မှတ်ရန်', markAllRead: 'အားလုံး ဖတ်ပြီးဟု မှတ်ရန်', loading: 'တင်နေသည်', error: 'အမှား', notLoggedIn: 'ဝင်ရောက်ထားခြင်း မရှိသေးပါ။ Challenge၊ wallet နှင့် match room သုံးရန် ဝင်ပါ။', notAuthorized: 'ဤအပိုင်းကို ကြည့်ခွင့် မရှိပါ။', save: 'သိမ်းရန်', close: 'ပိတ်ရန်', openRoom: 'Room ဖွင့်ရန်'}
+};
+let lang = localStorage.getItem('ma_lang') || 'en';
+function t(k){ return (DICT[lang] && DICT[lang][k]) || DICT.en[k] || k; }
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.getElementById('langBtn').textContent = lang === 'en' ? 'Myanmar' : 'English';
+}
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function token(){ return localStorage.getItem('ma_token'); }
+function me(){ try { return JSON.parse(localStorage.getItem('ma_user') || 'null'); } catch { return null; } }
+function showError(msg){ const el = document.getElementById('globalError'); el.innerHTML = msg ? '<div class="error">' + esc(msg) + '</div>' : ''; }
+async function api(path, opts){
+  opts = opts || {};
+  const headers = Object.assign({}, opts.headers || {});
+  if (token()) headers.Authorization = 'Bearer ' + token();
+  if (opts.body && !(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json';
+  const res = await fetch(path, Object.assign({}, opts, { headers }));
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (!res.ok) throw new Error(data.error || ('Request failed: ' + res.status));
+  return data;
+}
+function showPage(name){
+  document.querySelectorAll('.page').forEach(s => s.hidden = true);
+  const el = document.getElementById('sec-' + name); if (el) el.hidden = false;
+  document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === name));
+  showError('');
+  if (name === 'home') loadHome();
+  if (name === 'challenges') { loadChallenges(); loadFavorites(); }
+  if (name === 'wallet') loadWallet();
+  if (name === 'leaderboard') loadLeaderboard();
+  if (name === 'tournaments') loadTournaments();
+  if (name === 'profile') loadProfile();
+  if (name === 'admin') loadAdmin();
+  if (name === 'notifications') loadNotifications();
+}
+document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => showPage(b.dataset.nav)));
+document.getElementById('langBtn').addEventListener('click', () => { lang = lang === 'en' ? 'mm' : 'en'; localStorage.setItem('ma_lang', lang); applyLang(); });
+document.getElementById('logoutBtn').addEventListener('click', async () => { try { await api('/auth/logout', { method: 'POST' }); } catch {} localStorage.removeItem('ma_token'); localStorage.removeItem('ma_user'); updateMeLine(); showPage('home'); });
+function updateMeLine(){ const u = me(); document.getElementById('meLine').textContent = u ? (u.displayName + ' (' + u.role + ')') : ''; }
+async function doDemoLogin(e){ e.preventDefault(); try { const d = await api('/auth/demo', { method: 'POST', body: JSON.stringify({ email: document.getElementById('loginEmail').value, role: document.getElementById('loginRole').value }) }); localStorage.setItem('ma_token', d.token); localStorage.setItem('ma_user', JSON.stringify(d.user)); updateMeLine(); showPage('home'); } catch (err) { showError(err.message); } return false; }
+async function loadHome(){
+  if (!token()) { document.getElementById('homeStats').innerHTML = '<p class="muted">' + esc(t('notLoggedIn')) + '</p>'; return; }
+  try {
+    const d = await api('/home');
+    document.getElementById('homeStats').innerHTML = '<div class="card"><h3>' + t('statsOpen') + '</h3><p>' + d.openChallenges + '</p></div><div class="card"><h3>' + t('statsActive') + '</h3><p>' + d.activeMatchRooms + '</p></div><div class="card"><h3>' + t('statsCompleted') + '</h3><p>' + d.completedMatches + '</p></div><div class="card"><h3>' + t('nextTournament') + '</h3><p>' + (d.nextTournament ? esc(d.nextTournament.name) + ' — ' + esc(d.nextTournament.startTime) : '—') + '</p></div>';
+    document.getElementById('homeTop').innerHTML = '<div class="card"><h3>' + t('topPlayers') + '</h3>' + (d.topPlayers || []).map(p => '<p>' + esc(p.player ? p.player.displayName : '') + ' — ' + (p.wins ?? '') + '</p>').join('') + '</div>';
+    const b = await api('/site-banners/active');
+    document.getElementById('homeBanners').innerHTML = '<div class="card"><h3>' + t('banners') + '</h3>' + b.banners.map(x => '<div><img class="banner" src="/site-banners/' + x.id + '/image" alt="' + esc(x.title || '') + '"><p>' + esc(x.title || '') + '</p></div>').join('') + '</div>';
+    const a = await api('/site-announcements/active');
+    document.getElementById('homeAnnouncements').innerHTML = '<div class="card"><h3>' + t('announcements') + '</h3>' + a.announcements.map(x => '<p>' + esc(x.text) + '</p>').join('') + '</div>';
+  } catch (err) { showError(err.message); }
+}
+async function doSearch(e){ e.preventDefault(); try { const q = document.getElementById('searchQ').value; const d = await api('/search?q=' + encodeURIComponent(q)); document.getElementById('searchResults').innerHTML = '<div class="card"><p>Players: ' + d.players.map(p => esc(p.displayName)).join(', ') + '</p><p>Challenges: ' + d.challenges.map(c => '#' + c.id + ' ' + esc(c.arena)).join(', ') + '</p><p>Tournaments: ' + d.tournaments.map(x => esc(x.name)).join(', ') + '</p></div>'; } catch (err) { showError(err.message); } return false; }
+</script>
+<script>
+let currentRoom = null; let chatTimer = null;
+async function loadChallenges(e){ if (e) e.preventDefault(); try { const q = new URLSearchParams(); const a = document.getElementById('fArena').value, tm = document.getElementById('fTeam').value, h = document.getElementById('fHero').value, mn = document.getElementById('fMin').value, mx = document.getElementById('fMax').value; if (a) q.set('arena', a); if (tm) q.set('teamSize', tm); if (h) q.set('heroRule', h); if (mn) q.set('coinMin', mn); if (mx) q.set('coinMax', mx); const d = await api('/challenges?' + q.toString()); document.getElementById('challengeList').innerHTML = (d.challenges || []).map(c => '<div class="card row"><div><strong>#' + c.id + ' ' + esc(c.arena) + ' ' + esc(c.teamSize) + '</strong><p class="muted">' + esc(c.heroRule) + ' — ' + c.stake + ' — ' + esc(c.status) + '</p></div><div><button onclick="viewChallenge(' + c.id + ')">' + t('detail') + '</button> <button onclick="acceptChallenge(' + c.id + ')">' + t('accept') + '</button> <button class="secondary" onclick="cancelChallenge(' + c.id + ')">' + t('cancel') + '</button></div></div>').join('') || '<p class="muted">—</p>'; } catch (err) { showError(err.message); } return false; }
+async function viewChallenge(id){ try { const d = await api('/challenges/' + id); const c = d.challenge || d; document.getElementById('challengeDetail').innerHTML = '<div class="card"><pre>' + esc(JSON.stringify(c, null, 2)) + '</pre></div>'; } catch (err) { showError(err.message); } }
+async function acceptChallenge(id){ try { const d = await api('/challenges/' + id + '/accept', { method: 'POST' }); if (d.matchRoom) { document.getElementById('roomId').value = d.matchRoom.id; showPage('room'); loadRoomById(d.matchRoom.id); } else loadChallenges(); } catch (err) { showError(err.message); } }
+async function cancelChallenge(id){ try { await api('/challenges/' + id + '/cancel', { method: 'POST' }); loadChallenges(); } catch (err) { showError(err.message); } }
+async function createChallenge(e){ e.preventDefault(); try { const bans = document.getElementById('cBans').value.split(',').map(s => s.trim()).filter(Boolean); await api('/challenges', { method: 'POST', body: JSON.stringify({ arena: document.getElementById('cArena').value, teamSize: document.getElementById('cTeam').value, stake: Number(document.getElementById('cStake').value), heroRule: document.getElementById('cHero').value, heroBans: bans, customRules: document.getElementById('cRules').value, rankRestriction: { type: 'none' } }) }); loadChallenges(); } catch (err) { showError(err.message); } return false; }
+async function loadFavorites(){ try { const d = await api('/challenges/favorites'); document.getElementById('favList').innerHTML = (d.favorites || []).map(f => '<div class="card row"><div>' + esc(f.name) + ' — ' + esc(f.arena) + ' ' + esc(f.teamSize) + '</div><button onclick="useFavorite(' + f.id + ')">' + t('createChallenge') + '</button></div>').join('') || '<p class="muted">—</p>'; } catch (err) { showError(err.message); } }
+async function useFavorite(id){ try { const stake = Number(prompt('Stake')); if (!stake) return; await api('/challenges/from-favorite', { method: 'POST', body: JSON.stringify({ favoriteId: id, stake }) }); loadChallenges(); } catch (err) { showError(err.message); } }
+async function loadRoom(e){ if (e) e.preventDefault(); loadRoomById(document.getElementById('roomId').value); }
+async function loadRoomById(id){
+  try {
+    const d = await api('/match-rooms/' + id + '/reconnect'); currentRoom = d;
+    const parts = (d.participants || []).map(p => '<p>' + esc(p.user ? p.user.displayName : p.userId) + ' — side ' + esc(p.side) + ' — ' + (p.ready ? t('ready') : '—') + ' — MLBB ' + esc(p.user ? (p.user.mlbbId || '') : '') + ' <button class="secondary" onclick="copyText(\'' + esc(p.user ? (p.user.mlbbId || '') : '') + '\')">' + t('copyId') + '</button> — server ' + esc(p.user ? (p.user.serverId || '') : '') + ' <button class="secondary" onclick="copyText(\'' + esc(p.user ? (p.user.serverId || '') : '') + '\')">' + t('copyId') + '</button></p>').join('');
+    document.getElementById('roomDetail').innerHTML = '<div class="card"><p>Room #' + d.id + ' — ' + esc(d.status) + '</p><p>Timer: ' + esc(d.timer ? d.timer.state : '') + ' — ' + (d.timer ? (d.timer.secondsRemaining ?? '') : '') + 's — result window: ' + esc(d.resultWindowOpensAt || '') + '</p><h3>' + t('participants') + '</h3>' + parts + '<div><button onclick="setReady(true)">' + t('ready') + '</button> <button class="secondary" onclick="setReady(false)">' + t('unready') + '</button> <button class="secondary" onclick="leaveRoom()">' + t('cancel') + '</button></div></div>';
+    document.getElementById('roomChat').innerHTML = (d.chat || []).map(m => '<p>' + esc(m.userId) + ': ' + esc(m.text) + '</p>').join('');
+    if (chatTimer) clearInterval(chatTimer);
+    chatTimer = setInterval(() => { if (currentRoom) loadRoomById(currentRoom.id); }, 5000);
+  } catch (err) { showError(err.message); }
+}
+function copyText(v){ if (!v) return; if (navigator.clipboard) navigator.clipboard.writeText(v).catch(() => {}); }
+async function setReady(v){ try { await api('/match-rooms/' + currentRoom.id + '/ready', { method: 'POST', body: JSON.stringify({ ready: v }) }); loadRoomById(currentRoom.id); } catch (err) { showError(err.message); } }
+async function leaveRoom(){ try { await api('/match-rooms/' + currentRoom.id + '/leave', { method: 'POST' }); loadRoomById(currentRoom.id); } catch (err) { showError(err.message); } }
+async function sendChat(e){ e.preventDefault(); try { await api('/match-rooms/' + currentRoom.id + '/chat', { method: 'POST', body: JSON.stringify({ text: document.getElementById('chatText').value }) }); document.getElementById('chatText').value = ''; loadRoomById(currentRoom.id); } catch (err) { showError(err.message); } return false; }
+async function submitResult(e){ e.preventDefault(); try { const fd = new FormData(); fd.append('outcome', document.getElementById('resultOutcome').value); fd.append('reason', document.getElementById('resultReason').value || ''); const f = document.getElementById('resultEvidence').files[0]; if (f) fd.append('evidence', f); const d = await api('/match-rooms/' + currentRoom.id + '/results', { method: 'POST', body: fd }); document.getElementById('disputeView').innerHTML = '<pre>' + esc(JSON.stringify(d, null, 2)) + '</pre>'; } catch (err) { showError(err.message); } return false; }
+// Voice: peer-to-peer via Part 4 signalling, polling for signals.
+let pc = null, localStream = null, voiceMuted = false, lastSignalId = 0, voiceTimer = null;
+async function joinVoice(){
+  try {
+    await api('/match-rooms/' + currentRoom.id + '/voice/join', { method: 'POST' });
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    pc = new RTCPeerConnection();
+    localStream.getTracks().forEach(tr => pc.addTrack(tr, localStream));
+    pc.onicecandidate = ev => { if (ev.candidate) api('/match-rooms/' + currentRoom.id + '/voice/signal', { method: 'POST', body: JSON.stringify({ kind: 'ice-candidate', payload: JSON.stringify(ev.candidate) }) }).catch(() => {}); };
+    pc.ontrack = ev => { const audio = new Audio(); audio.srcObject = ev.streams[0]; audio.play().catch(() => {}); };
+    const others = (currentRoom.participants || []).filter(p => p.userId !== me().id);
+    if (others.length) {
+      const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
+      await api('/match-rooms/' + currentRoom.id + '/voice/signal', { method: 'POST', body: JSON.stringify({ toUserId: others[0].userId, kind: 'offer', payload: JSON.stringify(offer) }) });
+    }
+    voiceTimer = setInterval(pollVoiceSignals, 3000);
+    document.getElementById('voiceStatus').textContent = 'Voice joined (peer-to-peer)';
+  } catch (err) { document.getElementById('voiceStatus').textContent = 'Voice unavailable: ' + err.message + ' — text chat still works.'; }
+}
+async function pollVoiceSignals(){
+  if (!pc || !currentRoom) return;
+  try {
+    const d = await api('/match-rooms/' + currentRoom.id + '/voice/signals?afterId=' + lastSignalId);
+    for (const s of (d.signals || [])) {
+      lastSignalId = Math.max(lastSignalId, s.id);
+      if (s.fromUserId === me().id) continue;
+      if (s.kind === 'offer') { await pc.setRemoteDescription(JSON.parse(s.payload)); const ans = await pc.createAnswer(); await pc.setLocalDescription(ans); await api('/match-rooms/' + currentRoom.id + '/voice/signal', { method: 'POST', body: JSON.stringify({ toUserId: s.fromUserId, kind: 'answer', payload: JSON.stringify(ans) }) }); }
+      else if (s.kind === 'answer') { await pc.setRemoteDescription(JSON.parse(s.payload)); }
+      else if (s.kind === 'ice-candidate') { try { await pc.addIceCandidate(JSON.parse(s.payload)); } catch {} }
+    }
+  } catch {}
+}
+function toggleMute(){ if (!localStream) return; voiceMuted = !voiceMuted; localStream.getAudioTracks().forEach(tr => tr.enabled = !voiceMuted); document.getElementById('voiceStatus').textContent = voiceMuted ? t('mute') : t('unmute'); }
+async function leaveVoice(){ try { if (pc) pc.close(); pc = null; if (localStream) localStream.getTracks().forEach(tr => tr.stop()); if (voiceTimer) clearInterval(voiceTimer); await api('/match-rooms/' + currentRoom.id + '/voice/leave', { method: 'POST' }); } catch (err) { showError(err.message); } }
+</script>
+<script>
+async function loadWallet(){
+  try {
+    const b = await api('/wallet/me'); document.getElementById('walletBalance').innerHTML = '<p>' + t('balanceAvailable') + ': ' + b.balance.available + ' — ' + t('balanceLocked') + ': ' + b.balance.locked + '</p>';
+    const h = await api('/wallet/me/history'); document.getElementById('walletHistory').innerHTML = '<h3>' + t('history') + '</h3>' + (h.entries || h.history || []).map(x => '<p>' + esc(x.type || '') + ' ' + (x.amount ?? x.deltaAvailable ?? '') + ' — ' + esc(x.createdAt || '') + '</p>').join('');
+    const p = await api('/wallet/me/purchases'); document.getElementById('walletPurchases').innerHTML = '<h3>' + t('purchases') + '</h3>' + (p.purchases || []).map(x => '<p>#' + x.id + ' ' + (x.coins ?? '') + ' ' + esc(x.status || '') + '</p>').join('');
+    const pkgs = await api('/wallet/packages'); document.getElementById('packageList').innerHTML = (pkgs.packages || []).map(x => '<p>#' + x.id + ' ' + esc(x.name) + ' — ' + x.coins + ' — ' + (x.priceAmount ?? '') + '</p>').join('');
+    const r = await api('/referrals/me'); document.getElementById('referralDash').innerHTML = '<p>' + esc(r.referralCode || '') + ' — ' + esc(r.referralLink || '') + ' — ' + (r.totalEarnings ?? '') + '</p>';
+    const inv = await api('/referrals/me/invitees'); document.getElementById('referralInvitees').innerHTML = (inv.invitees || []).map(x => '<p>' + esc(x.displayName || '') + ' — wins ' + (x.matchesWon ?? '') + '</p>').join('');
+  } catch (err) { showError(err.message); }
+}
+async function buyCoins(e){ e.preventDefault(); try { const body = {}; const pid = document.getElementById('buyPackage').value, cus = document.getElementById('buyCustom').value; if (pid) body.packageId = Number(pid); if (cus) body.customCoins = Number(cus); await api('/wallet/purchases', { method: 'POST', body: JSON.stringify(body) }); loadWallet(); } catch (err) { showError(err.message); } return false; }
+async function attachReferral(e){ e.preventDefault(); try { await api('/referrals/attach', { method: 'POST', body: JSON.stringify({ referralCode: document.getElementById('refCode').value }) }); loadWallet(); } catch (err) { showError(err.message); } return false; }
+async function loadLeaderboard(e){ if (e) e.preventDefault(); try { const d = await api('/leaderboards?category=' + document.getElementById('lbCat').value + '&period=' + document.getElementById('lbPeriod').value); document.getElementById('lbList').innerHTML = (d.entries || []).map(x => '<div class="card"><pre>' + esc(JSON.stringify(x, null, 2)) + '</pre></div>').join('') || '<p class="muted">—</p>'; } catch (err) { showError(err.message); } return false; }
+async function loadTournaments(){ try { const d = await api('/tournaments'); document.getElementById('tournList').innerHTML = (d.tournaments || []).map(x => '<div class="card row"><div><strong>' + esc(x.name) + '</strong><p class="muted">' + esc(x.status) + ' — ' + esc(x.startTime) + '</p></div><button onclick="viewTournament(' + x.id + ')">' + t('detail') + '</button></div>').join('') || '<p class="muted">—</p>'; } catch (err) { showError(err.message); } }
+let currentTournament = null;
+async function viewTournament(id){ try { const d = await api('/tournaments/' + id); currentTournament = d.tournament; document.getElementById('tournDetail').innerHTML = '<div class="card"><pre>' + esc(JSON.stringify(d.tournament, null, 2)) + '</pre><button onclick="registerTournament(' + id + ')">' + t('register') + '</button></div>'; const b = await api('/tournaments/' + id + '/bracket'); document.getElementById('tournBracket').innerHTML = '<div class="card"><h3>' + t('bracket') + '</h3><pre>' + esc(JSON.stringify(b, null, 2)) + '</pre></div>'; } catch (err) { showError(err.message); } }
+async function loadTournament(e){ if (e) e.preventDefault(); viewTournament(document.getElementById('tournId').value); return false; }
+async function registerTournament(id){ try { const body = {}; if (currentTournament && currentTournament.mode === 'team') { const teamId = Number(prompt('Team id')); if (!teamId) return; body.type = 'team'; body.teamId = teamId; } await api('/tournaments/' + id + '/register', { method: 'POST', body: JSON.stringify(body) }); viewTournament(id); } catch (err) { showError(err.message); } }
+async function loadProfile(){
+  try {
+    const d = await api('/profiles/me'); document.getElementById('profileView').innerHTML = '<pre>' + esc(JSON.stringify(d.profile, null, 2)) + '</pre>';
+    const f = await api('/friends'); document.getElementById('friendList').innerHTML = (f.friends || []).map(x => '<p>' + esc(x.displayName || x.id) + '</p>').join('');
+    const tm = await api('/teams/me'); document.getElementById('teamList').innerHTML = (tm.teams || []).map(x => '<p>' + esc(x.name) + '</p>').join('');
+  } catch (err) { showError(err.message); }
+}
+async function saveProfile(e){ e.preventDefault(); try { const name = document.getElementById('profName').value; if (name) await api('/profiles/me', { method: 'PUT', body: JSON.stringify({ displayName: name }) }); const rank = document.getElementById('profRank').value; await api('/profile/rank', { method: 'PUT', body: JSON.stringify({ rankTier: rank || null }) }); const mlbb = document.getElementById('profMlbb').value, srv = document.getElementById('profServer').value; if (mlbb || srv) await api('/profile/game-ids', { method: 'PUT', body: JSON.stringify({ mlbbId: mlbb || null, serverId: srv || null }) }); loadProfile(); } catch (err) { showError(err.message); } return false; }
+async function uploadAvatar(e){ e.preventDefault(); try { const fd = new FormData(); fd.append('avatar', document.getElementById('avatarFile').files[0]); await api('/profiles/me/avatar', { method: 'POST', body: fd }); loadProfile(); } catch (err) { showError(err.message); } return false; }
+async function addFriend(e){ e.preventDefault(); try { await api('/friends/requests', { method: 'POST', body: JSON.stringify({ userId: Number(document.getElementById('friendId').value) }) }); loadProfile(); } catch (err) { showError(err.message); } return false; }
+async function createTeam(e){ e.preventDefault(); try { await api('/teams', { method: 'POST', body: JSON.stringify({ name: document.getElementById('teamName').value }) }); loadProfile(); } catch (err) { showError(err.message); } return false; }
+async function loadAdmin(){
+  const u = me(); if (!u || !['owner', 'admin', 'moderator', 'support'].includes(u.role)) { document.getElementById('adminBody').innerHTML = '<p class="muted">' + esc(t('notAuthorized')) + '</p>'; return; }
+  try {
+    let html = '';
+    try { const s = await api('/admin/stats'); html += '<div class="card"><h3>' + t('stats') + '</h3><pre>' + esc(JSON.stringify(s.stats, null, 2)) + '</pre></div>'; } catch (e2) { html += '<p>' + esc(e2.message) + '</p>'; }
+    try { const h = await api('/admin/health'); html += '<div class="card"><h3>' + t('health') + '</h3><pre>' + esc(JSON.stringify(h.health, null, 2)) + '</pre></div>'; } catch (e2) { html += '<p>' + esc(e2.message) + '</p>'; }
+    try { const su = await api('/admin/suspicious'); html += '<div class="card"><h3>' + t('suspicious') + '</h3><pre>' + esc(JSON.stringify(su.groups, null, 2)) + '</pre></div>'; } catch (e2) { html += '<p>' + esc(e2.message) + '</p>'; }
+    try { const bk = await api('/admin/backups'); html += '<div class="card"><h3>' + t('backups') + '</h3><pre>' + esc(JSON.stringify(bk.backups, null, 2)) + '</pre></div>'; } catch (e2) { html += '<p>' + esc(e2.message) + '</p>'; }
+    try { const ha = await api('/help-articles'); html += '<div class="card"><h3>' + t('help') + '</h3>' + (ha.articles || []).map(a => '<p>' + esc(a.title) + '</p>').join('') + '</div>'; } catch (e2) { html += '<p>' + esc(e2.message) + '</p>'; }
+    try { const tk = await api('/tickets'); html += '<div class="card"><h3>' + t('tickets') + '</h3>' + (tk.tickets || []).map(x => '<p>#' + x.id + ' ' + esc(x.subject) + ' — ' + esc(x.status) + '</p>').join('') + '</div>'; } catch (e2) { html += '<p>' + esc(e2.message) + '</p>'; }
+    try { const cfg = await api('/site-config'); html += '<div class="card"><h3>' + t('siteConfig') + '</h3><pre>' + esc(JSON.stringify(cfg.siteConfig, null, 2)) + '</pre><form onsubmit="return saveSiteConfig(event)"><label>Button colour</label><input id="cfgBtn"><label>Background colour</label><input id="cfgBg"><label>Homepage text</label><input id="cfgText"><button>' + t('save') + '</button></form></div>'; } catch (e2) { html += '<p>' + esc(e2.message) + '</p>'; }
+    html += '<div class="card"><h3>' + t('maintenance') + ' / ' + t('emergency') + '</h3><p class="muted">Maintenance and emergency toggles require owner confirmation in the API. Use the confirm checkbox in the API call below.</p><form onsubmit="return toggleMaintenance(event)"><label>Reason</label><input id="maintReason" required><label><input id="maintConfirm" type="checkbox"> Confirm (required if matches are active)</label><button>Enable maintenance</button></form><form onsubmit="return toggleEmergency(event)"><label>Reason</label><input id="emReason" required><button>Enable emergency</button></form></div>';
+    document.getElementById('adminBody').innerHTML = html;
+  } catch (err) { showError(err.message); }
+}
+async function saveSiteConfig(e){ e.preventDefault(); try { const body = {}; const b = document.getElementById('cfgBtn').value, bg = document.getElementById('cfgBg').value, tx = document.getElementById('cfgText').value; if (b) body.buttonColor = b; if (bg) body.backgroundColor = bg; if (tx) body.homepageText = tx; await api('/site-config', { method: 'PUT', body: JSON.stringify(body) }); loadAdmin(); } catch (err) { showError(err.message); } return false; }
+async function toggleMaintenance(e){ e.preventDefault(); try { await api('/admin/maintenance', { method: 'POST', body: JSON.stringify({ enabled: true, reason: document.getElementById('maintReason').value, confirm: document.getElementById('maintConfirm').checked }) }); loadAdmin(); } catch (err) { showError(err.message); } return false; }
+async function toggleEmergency(e){ e.preventDefault(); try { await api('/admin/emergency', { method: 'POST', body: JSON.stringify({ enabled: true, reason: document.getElementById('emReason').value, confirm: true }) }); loadAdmin(); } catch (err) { showError(err.message); } return false; }
+async function loadNotifications(e){ if (e) e.preventDefault(); try { const cat = document.getElementById('notCat').value; const d = await api('/notifications' + (cat ? '?category=' + cat : '')); document.getElementById('notList').innerHTML = (d.notifications || []).map(n => '<div class="card row"><div><p>' + esc(n.message) + '</p><p class="muted">' + esc(n.category || n.type) + ' — ' + esc(n.createdAt || '') + '</p></div><button onclick="markRead(' + n.id + ', ' + (n.target ? n.target.type === 'match_room' ? n.target.id : 0 : 0) + ', \'' + (n.target ? n.target.type : '') + '\')">' + t('markRead') + '</button></div>').join('') || '<p class="muted">—</p>'; } catch (err) { showError(err.message); } return false; }
+async function markRead(id, targetId, targetType){ try { await api('/notifications/' + id + '/read', { method: 'POST' }); if (targetType === 'match_room' && targetId) { document.getElementById('roomId').value = targetId; showPage('room'); loadRoomById(targetId); } else loadNotifications(); } catch (err) { showError(err.message); } }
+async function markAllRead(){ try { await api('/notifications/read-all', { method: 'POST' }); loadNotifications(); } catch (err) { showError(err.message); } }
+applyLang(); updateMeLine(); showPage('home');
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); }); }
+</script>
+</body>
+</html>

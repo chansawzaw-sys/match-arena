@@ -1,0 +1,14 @@
+:root{--bg:#0b1020;--panel:#121a33;--panel2:#18224a;--text:#eef2ff;--muted:#9aa7c7;--accent:#22d3ee;--accent2:#7c3aed;--danger:#ef4444;--ok:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+a{color:var(--accent)}button,.btn{cursor:pointer;border:1px solid var(--accent);background:linear-gradient(135deg,#0ea5e9,#7c3aed);color:#fff;padding:.55rem 1rem;border-radius:.7rem;font-weight:650;transition:transform .12s ease,box-shadow .2s ease;text-decoration:none;display:inline-block}
+button:hover,.btn:hover{transform:translateY(-1px);box-shadow:0 0 18px rgba(34,211,238,.65)}button:active,.btn:active{transform:scale(.98)}
+button.secondary{background:transparent;color:var(--text);border-color:#334155}input,select,textarea{width:100%;padding:.55rem;border-radius:.5rem;border:1px solid #334155;background:#0f1730;color:var(--text);margin:.25rem 0 .7rem}
+.topbar{display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:.8rem 1rem;background:#0f1730;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.topbar nav{display:flex;gap:.4rem;flex-wrap:wrap}.topbar nav button{background:transparent;border-color:transparent;padding:.4rem .6rem}
+.topbar nav button.active{border-color:var(--accent);box-shadow:0 0 12px rgba(34,211,238,.4)}
+main{max-width:1080px;margin:0 auto;padding:1rem}.hero,.card{background:var(--panel);border:1px solid #24315e;border-radius:1rem;padding:1.2rem;margin:1rem 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}.muted{color:var(--muted)}.error{color:#fecaca;background:#450a0a;border:1px solid var(--danger);padding:.7rem;border-radius:.6rem;margin:.7rem 0}
+.ok{color:#dcfce7}.list{display:grid;gap:.7rem}.row{display:flex;gap:.8rem;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+label{font-size:.9rem;color:var(--muted)}form.inline{display:flex;gap:.5rem;flex-wrap:wrap;align-items:end}form.inline>*{flex:1 1 160px}
+.banner{width:100%;max-height:260px;object-fit:cover;border-radius:.8rem}.pill{display:inline-block;padding:.15rem .6rem;border-radius:999px;background:var(--panel2);border:1px solid #334155;font-size:.8rem}
+@media (max-width:640px){main{padding:.6rem}.topbar{padding:.6rem}.hero,.card{padding:.9rem}form.inline>*{flex:1 1 100%}button,.btn{width:100%;text-align:center}.topbar nav button{width:auto}}
